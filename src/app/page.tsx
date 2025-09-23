@@ -1,103 +1,196 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { getUser } from "./actions/github";
+
+import Header from "@/components/Header";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useState } from "react";
+import { ExternalLink, GitFork, Star } from "lucide-react";
+
+interface gitHubUser {
+  id: number;
+  name: string;
+  avatar_url: string;
+  html_url: string;
+  type: string;
+  email: string;
+  bio: string;
+  public_repos: number;
+  followers: number;
+  following: number;
+  updated_at: string;
+}
+
+interface userRepos {
+  id: number;
+  name: string;
+  private: boolean;
+  html_url: string;
+  description: string;
+  forks_count: number;
+  updated_at: string;
+  stargazers_count: number;
+  language: string | null;
+}
+
+function Home() {
+  const [input, setInput] = useState("");
+  const [user, setUser] = useState<gitHubUser>();
+  const [repos, setRepos] = useState<userRepos[]>([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function getData() {
+    setLoading(true);
+    setError("");
+    setUser(undefined);
+    setRepos([]);
+
+    const data = await getUser(input);
+    setLoading(false);
+    if (!data) {
+      setError("Please enter username!");
+      return;
+    } else if (data == "error") setError("User not found");
+
+    if (data !== "error") {
+      let { user, repos } = data;
+      setUser(user);
+      setRepos(repos);
+    }
+
+    console.log(repos);
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <>
+      <Header />
+      <div className="font-mono flex justify-center items-center mt-10 ">
+        <p className="max-w-[50%] text-center text-foreground/65">
+          Transform your GitHub repositories into a beautiful, downloadable
+          portfolio image. Perfect for showcasing your projects on social media,
+          resumes, or presentations.
+        </p>
+      </div>
+      <div className="flex justify-center items-center mt-10">
+        <div className="  flex w-full max-w-md gap-2 mb-10 px-2">
+          <Input value={input} onChange={(e) => setInput(e.target.value)} />
+          <Button onClick={() => getData()}>Generate</Button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      </div>
+
+      {error && (
+        <div className="flex justify-center items-center ">
+          <Alert variant="destructive" className="max-w-72">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
+      )}
+
+      {loading && (
+        <div>
+          <div className="flex flex-col gap-3 justify-center items-center">
+            <Skeleton className="rounded-full w-20 h-20" />
+            <Skeleton className="w-12 h-4" />
+            <Skeleton className="w-24 h-4" />
+            <Skeleton className="w-80 h-3" />
+          </div>
+          <div className="flex justify-center items-center mt-10 flex-wrap gap-5">
+            <Skeleton className="w-96 h-60 " />
+            <Skeleton className="w-96 h-60 " />
+            <Skeleton className="w-96 h-60 " />
+            <Skeleton className="w-96 h-60 " />
+            <Skeleton className="w-96 h-60 " />
+            <Skeleton className="w-96 h-60 " />
+            <Skeleton className="w-96 h-60 " />
+            <Skeleton className="w-96 h-60 " />
+          </div>
+        </div>
+      )}
+
+      {user && (
+        <div className="flex flex-col gap-3 justify-center items-center">
+          <img
+            src={user?.avatar_url}
+            alt="User Avatar"
+            className="rounded-full w-20 h-20"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <h1>{user?.name}</h1>
+          <h2>{user?.bio}</h2>
+          <div className="flex justify-between items-center w-80 text-sm">
+            <h3>{user?.public_repos} repositories</h3>
+            <h3>{user?.followers} followers</h3>
+            <h3>{user?.following} following</h3>
+          </div>
+        </div>
+      )}
+      {repos.length > 0 && (
+        <div className="flex justify-center items-center mt-10 flex-wrap gap-5">
+          {repos.map((repo) => (
+            <Card key={repo.id} className="w-96 min-h-60 group hover:shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-lg">{repo?.name}</CardTitle>
+                <CardDescription className="mt-3 ">
+                  {repo?.description}
+                </CardDescription>
+                <CardAction>
+                  <Button
+                    variant="ghost"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    size="sm"
+                  >
+                    <a href={repo.html_url} target="_blank">
+                      <ExternalLink />
+                    </a>
+                  </Button>
+                </CardAction>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between">
+                  <p className="rounded-3xl bg-foreground/30 px-3 font-semibold text-xs py-1 text-center">
+                    {repo?.language}
+                  </p>
+                  <div className="text-sm text-muted-foreground flex gap-2">
+                    <h3 className="flex items-center gap-1">
+                      <Star className="w-3 h-3" />
+                      {repo?.stargazers_count}
+                    </h3>
+                    <h3 className="flex items-center gap-1">
+                      <GitFork className="w-3 h-3" />
+                      {repo?.forks_count}
+                    </h3>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <p className="text-muted-foreground text-xs">
+                  {repo &&
+                    new Date(repo.updated_at).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                </p>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
+
+export default Home;
