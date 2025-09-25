@@ -14,9 +14,9 @@ export default function Header() {
   const { setTheme } = useTheme();
 
   return (
-    <nav>
-      <div className="grid grid-flow-col  justify-center items-center mt-5 px-2">
-        <div className="py-5  flex min-w-80 justify-around items-center rounded-4xl border-1 border-border ">
+    <nav className="sticky top-3 z-50 ">
+      <div className="grid grid-flow-col  justify-center items-center mt-5 px-2  ">
+        <div className="py-5  flex min-w-80 justify-around items-center rounded-4xl border-1 border-border bg-background shadow-lg">
           <div className="font-bold text-2xl font-mono flex items-center">
             <Cat />
             <h1 className="ms-2">RepoResume</h1>
