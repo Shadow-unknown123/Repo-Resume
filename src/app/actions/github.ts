@@ -12,7 +12,7 @@ export async function getUser(username: string) {
     const repos = await Res.json();
 
     return { user, repos };
-  } catch (err: any) {
+  } catch {
     return "error";
   }
 }

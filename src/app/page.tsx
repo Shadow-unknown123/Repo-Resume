@@ -70,7 +70,7 @@ function Home() {
     } else if (data == "error") setError("User not found");
 
     if (data !== "error") {
-      let { user, repos } = data;
+      const { user, repos } = data;
       setUser(user);
       setRepos(repos);
     }
